@@ -36,8 +36,21 @@ class AuthRepositoryImpl(
     override suspend fun register(
         email: String,
         password: String
-    ): Result<AuthSession> {
-        TODO("Not yet implemented")
+    ): Result<AuthSession> = runCatchingApi {
+        authApi.register(CredentialsDto(email = email, password = password))
+    }.onSuccess {
+        // Register başarılı olursa token burada saklanabilir.
+        // Şimdilik login fonksiyonundaki gibi sadece sonucu dönüyoruz.
+    }.map { response ->
+        AuthSession(
+            user = User(
+                response.user.id,
+                response.user.email,
+                UserRole.fromApi(response.user.role)
+            ),
+            accessToken = response.accessToken,
+            refreshToken = response.refreshToken
+        )
     }
 
     override suspend fun logout(): Result<Unit> {
