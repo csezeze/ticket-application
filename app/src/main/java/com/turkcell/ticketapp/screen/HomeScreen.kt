@@ -25,6 +25,8 @@ fun HomeScreen() {
                 .padding(24.dp),
             verticalArrangement = Arrangement.Top
         ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
             Text(
                 text = "Ana Sayfa",
                 style = MaterialTheme.typography.headlineMedium,
