@@ -166,7 +166,7 @@ private fun EventCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = event.startsAt,
+                text = formatDate(event.startsAt),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -182,6 +182,13 @@ private fun EventCard(
             }
         }
     }
+}
+
+private fun formatDate(dateText: String): String {
+    return dateText
+        .replace("T", " ")
+        .replace("Z", "")
+        .take(16)
 }
 
 @Composable
