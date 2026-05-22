@@ -11,15 +11,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.turkcell.core.domain.Event
+import com.turkcell.core.domain.MyTicket
+import com.turkcell.ticketapp.viewmodel.HomeViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    viewModel: HomeViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -49,12 +60,34 @@ fun HomeScreen() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            EventCard(
-                name = "Demo Konseri",
-                venue = "Ana Sahne, İstanbul",
-                date = "19 Mayıs 2026, 18:00",
-                ticketInfo = "VIP: 500 TL  |  Standart: 200 TL"
-            )
+            when {
+                state.isLoadingEvents -> {
+                    CircularProgressIndicator()
+                }
+
+                state.eventErrorMessage != null -> {
+                    Text(
+                        text = state.eventErrorMessage ?: "Etkinlikler yüklenemedi.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                state.events.isEmpty() -> {
+                    Text(
+                        text = "Şu anda gösterilecek etkinlik yok.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                else -> {
+                    state.events.forEach { event ->
+                        EventCard(event = event)
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -66,23 +99,46 @@ fun HomeScreen() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            TicketCard(
-                eventName = "Demo Konseri",
-                ticketType = "VIP",
-                status = "VALID",
-                qrCode = "QR: demo-ticket-code"
-            )
+            when {
+                state.isLoadingTickets -> {
+                    CircularProgressIndicator()
+                }
+
+                state.ticketErrorMessage != null -> {
+                    Text(
+                        text = state.ticketErrorMessage ?: "Biletler yüklenemedi.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                state.tickets.isEmpty() -> {
+                    Text(
+                        text = "Henüz biletin yok.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                else -> {
+                    state.tickets.forEach { ticket ->
+                        TicketCard(ticket = ticket)
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun EventCard(
-    name: String,
-    venue: String,
-    date: String,
-    ticketInfo: String
+    event: Event
 ) {
+    val ticketInfo = event.ticketTypes.joinToString(separator = " | ") { ticketType ->
+        "${ticketType.name}: ${formatPrice(ticketType.priceCents)}"
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -94,7 +150,7 @@ private fun EventCard(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = name,
+                text = event.name,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -102,7 +158,7 @@ private fun EventCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = venue,
+                text = event.venue,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -110,28 +166,27 @@ private fun EventCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = date,
+                text = event.startsAt,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (ticketInfo.isNotBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = ticketInfo,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
+                Text(
+                    text = ticketInfo,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun TicketCard(
-    eventName: String,
-    ticketType: String,
-    status: String,
-    qrCode: String
+    ticket: MyTicket
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -144,7 +199,7 @@ private fun TicketCard(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = eventName,
+                text = ticket.ticketType.event.name,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -152,7 +207,7 @@ private fun TicketCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Bilet türü: $ticketType",
+                text = ticket.ticketType.event.venue,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -160,7 +215,15 @@ private fun TicketCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Durum: $status",
+                text = "Bilet türü: ${ticket.ticketType.name}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "Durum: ${ticket.status}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -168,10 +231,14 @@ private fun TicketCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = qrCode,
+                text = "QR: ${ticket.qrCode}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
+}
+
+private fun formatPrice(priceCents: Int): String {
+    return "${priceCents / 100} TL"
 }
