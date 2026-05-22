@@ -36,7 +36,7 @@ class HomeViewModel(
                 )
             }
 
-            eventRepository.getEvents(upcoming = true)
+            eventRepository.getEvents(upcoming = false)
                 .onSuccess { events ->
                     _state.update {
                         it.copy(

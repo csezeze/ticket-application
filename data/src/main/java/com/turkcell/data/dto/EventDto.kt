@@ -9,7 +9,8 @@ data class EventDto(
     val id: String,
     val name: String,
     val description: String? = null,
-    val venue: String,
+    val venue: String? = null,
+    val place: String? = null,
     val startsAt: String,
     val endsAt: String? = null,
     val createdAt: String? = null,
@@ -20,7 +21,7 @@ data class EventDto(
             id = id,
             name = name,
             description = description,
-            venue = venue,
+            venue = venue ?: place ?: "Konum belirtilmemiş",
             startsAt = startsAt,
             endsAt = endsAt,
             ticketTypes = ticketTypes.map { it.toDomain() }
