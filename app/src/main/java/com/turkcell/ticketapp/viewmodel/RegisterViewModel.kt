@@ -3,9 +3,11 @@ package com.turkcell.ticketapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turkcell.core.domain.AuthRepository
+import com.turkcell.data.network.ApiException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegisterViewModel(
@@ -16,66 +18,96 @@ class RegisterViewModel(
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
     fun onEmailChange(email: String) {
-        _uiState.value = _uiState.value.copy(
-            email = email,
-            errorMessage = null,
-            successMessage = null
-        )
+        _uiState.update {
+            it.copy(
+                email = email,
+                errorMessage = null,
+                successMessage = null,
+                isRegistered = false
+            )
+        }
     }
 
     fun onPasswordChange(password: String) {
-        _uiState.value = _uiState.value.copy(
-            password = password,
-            errorMessage = null,
-            successMessage = null
-        )
+        _uiState.update {
+            it.copy(
+                password = password,
+                errorMessage = null,
+                successMessage = null,
+                isRegistered = false
+            )
+        }
     }
 
     fun register() {
         val currentState = _uiState.value
 
-        if (currentState.email.isBlank() || currentState.password.isBlank()) {
-            _uiState.value = currentState.copy(
-                errorMessage = "Email ve şifre boş bırakılamaz."
-            )
+        if (!currentState.canSubmit) {
+            _uiState.update {
+                it.copy(errorMessage = "Email ve sifre bos birakilamaz.")
+            }
             return
         }
 
-        if (currentState.password.length < 8) {
-            _uiState.value = currentState.copy(
-                errorMessage = "Şifre en az 8 karakter olmalıdır."
-            )
+        if (!isValidEmail(currentState.email)) {
+            _uiState.update {
+                it.copy(errorMessage = "Gecerli bir email adresi gir.")
+            }
+            return
+        }
+
+        if (currentState.password.length !in 8..128) {
+            _uiState.update {
+                it.copy(errorMessage = "Sifre 8 ile 128 karakter arasinda olmali.")
+            }
             return
         }
 
         viewModelScope.launch {
-            _uiState.value = currentState.copy(
-                isLoading = true,
-                errorMessage = null,
-                successMessage = null
-            )
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null,
+                    successMessage = null,
+                    isRegistered = false
+                )
+            }
 
-            val result = authRepository.register(
+            authRepository.register(
                 email = currentState.email,
                 password = currentState.password
-            )
-
-            _uiState.value = result.fold(
-                onSuccess = { session ->
-                    currentState.copy(
+            ).onSuccess { session ->
+                _uiState.update {
+                    it.copy(
                         isLoading = false,
-                        successMessage = "Kayıt başarılı: ${session.user.email}",
+                        isRegistered = true,
+                        successMessage = "Kayit basarili: ${session.user.email}",
                         errorMessage = null
                     )
-                },
-                onFailure = { throwable ->
-                    currentState.copy(
+                }
+            }.onFailure { throwable ->
+                _uiState.update {
+                    it.copy(
                         isLoading = false,
-                        errorMessage = throwable.message ?: "Kayıt sırasında hata oluştu.",
+                        isRegistered = false,
+                        errorMessage = throwable.toRegisterUserMessage(),
                         successMessage = null
                     )
                 }
-            )
+            }
         }
     }
+
+    private fun isValidEmail(email: String): Boolean {
+        return Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$").matches(email)
+    }
+}
+
+private fun Throwable.toRegisterUserMessage(): String = when (this) {
+    is ApiException -> when (code) {
+        409 -> "Bu email zaten kayitli"
+        in 500..599 -> "Sunucu su anda cevap veremiyor"
+        else -> "Kayit sirasinda hata olustu"
+    }
+    else -> toUserMessage()
 }

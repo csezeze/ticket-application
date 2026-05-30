@@ -8,3 +8,6 @@ object Login
 object Register
 @Serializable
 object Home
+
+@Serializable
+data class EventDetail(val id: String)

@@ -15,4 +15,11 @@ class EventRepositoryImpl(
         }.map { eventDtos ->
             eventDtos.map { it.toDomain() }
         }
+
+    override suspend fun getEvent(id: String): Result<Event> =
+        runCatchingApi {
+            eventApi.getEvent(id = id)
+        }.map { eventDto ->
+            eventDto.toDomain()
+        }
 }
