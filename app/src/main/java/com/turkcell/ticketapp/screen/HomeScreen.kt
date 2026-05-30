@@ -1,5 +1,6 @@
 package com.turkcell.ticketapp.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,11 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.turkcell.core.domain.Event
 import com.turkcell.core.domain.MyTicket
+import com.turkcell.core.util.formatEventDate
 import com.turkcell.ticketapp.viewmodel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
+    onEventClick: (String) -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -83,7 +86,10 @@ fun HomeScreen(
 
                 else -> {
                     state.events.forEach { event ->
-                        EventCard(event = event)
+                        EventCard(
+                            event = event,
+                            onClick = { onEventClick(event.id) }
+                        )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
@@ -133,14 +139,17 @@ fun HomeScreen(
 
 @Composable
 private fun EventCard(
-    event: Event
+    event: Event,
+    onClick: () -> Unit
 ) {
     val ticketInfo = event.ticketTypes.joinToString(separator = " | ") { ticketType ->
         "${ticketType.name}: ${formatPrice(ticketType.priceCents)}"
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -166,7 +175,7 @@ private fun EventCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = formatDate(event.startsAt),
+                text = formatEventDate(event.startsAt),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -182,13 +191,6 @@ private fun EventCard(
             }
         }
     }
-}
-
-private fun formatDate(dateText: String): String {
-    return dateText
-        .replace("T", " ")
-        .replace("Z", "")
-        .take(16)
 }
 
 @Composable

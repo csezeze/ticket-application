@@ -6,9 +6,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.turkcell.ticketapp.screen.EventDetailScreen
+import com.turkcell.ticketapp.screen.HomeScreen
 import com.turkcell.ticketapp.screen.LoginScreen
 import com.turkcell.ticketapp.screen.RegisterScreen
-import com.turkcell.ticketapp.screen.HomeScreen
+
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberNavController()
@@ -41,7 +44,22 @@ fun AppNavHost(
         }
 
         composable<Home> {
-            HomeScreen()
+            HomeScreen(
+                onEventClick = { eventId ->
+                    navController.navigate(EventDetail(eventId))
+                }
+            )
+        }
+
+        composable<EventDetail> { backStackEntry ->
+            val eventDetail = backStackEntry.toRoute<EventDetail>()
+            EventDetailScreen(
+                eventId = eventDetail.id,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onPurchaseClick = {}
+            )
         }
     }
 }
