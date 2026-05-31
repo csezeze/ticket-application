@@ -10,6 +10,9 @@ object Register
 object Home
 
 @Serializable
+object MyTickets
+
+@Serializable
 data class EventDetail(val id: String)
 
 @Serializable

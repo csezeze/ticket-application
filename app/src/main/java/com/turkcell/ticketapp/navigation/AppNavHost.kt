@@ -10,6 +10,7 @@ import androidx.navigation.toRoute
 import com.turkcell.ticketapp.screen.EventDetailScreen
 import com.turkcell.ticketapp.screen.HomeScreen
 import com.turkcell.ticketapp.screen.LoginScreen
+import com.turkcell.ticketapp.screen.MyTicketsScreen
 import com.turkcell.ticketapp.screen.RegisterScreen
 import com.turkcell.ticketapp.screen.TicketDetailScreen
 
@@ -49,6 +50,17 @@ fun AppNavHost(
                 onEventClick = { eventId ->
                     navController.navigate(EventDetail(eventId))
                 },
+                onMyTicketsClick = {
+                    navController.navigate(MyTickets)
+                }
+            )
+        }
+
+        composable<MyTickets> {
+            MyTicketsScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
                 onTicketClick = { ticketId ->
                     navController.navigate(TicketDetail(ticketId))
                 }
@@ -63,9 +75,9 @@ fun AppNavHost(
                     navController.popBackStack()
                 },
                 onPaymentSuccess = {
-                    navController.navigate(Home) {
+                    navController.navigate(MyTickets) {
                         popUpTo(Home) {
-                            inclusive = true
+                            inclusive = false
                         }
                         launchSingleTop = true
                     }
