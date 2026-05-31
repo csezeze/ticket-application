@@ -1,6 +1,5 @@
 package com.turkcell.ticketapp.screen
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,19 +32,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
-import com.google.zxing.MultiFormatWriter
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import com.turkcell.core.domain.Event
 import com.turkcell.core.domain.MyTicket
 import com.turkcell.core.util.formatEventDate
+import com.turkcell.ticketapp.util.createQrBitmap
 import com.turkcell.ticketapp.viewmodel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HomeScreen(
     onEventClick: (String) -> Unit,
+    onTicketClick: (String) -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -150,7 +147,8 @@ fun HomeScreen(
                     state.tickets.forEachIndexed { index, ticket ->
                         TicketCard(
                             ticket = ticket,
-                            ticketNumber = index + 1
+                            ticketNumber = index + 1,
+                            onClick = { onTicketClick(ticket.id) }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -219,10 +217,13 @@ private fun EventCard(
 @Composable
 private fun TicketCard(
     ticket: MyTicket,
-    ticketNumber: Int
+    ticketNumber: Int,
+    onClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -316,36 +317,4 @@ private fun QrCodeImage(content: String) {
 
 private fun formatPrice(priceCents: Int): String {
     return "${priceCents / 100} TL"
-}
-
-private fun createQrBitmap(
-    content: String,
-    size: Int
-): Bitmap {
-    val hints = mapOf(
-        EncodeHintType.MARGIN to 1,
-        EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.M
-    )
-    val bitMatrix = MultiFormatWriter().encode(
-        content,
-        BarcodeFormat.QR_CODE,
-        size,
-        size,
-        hints
-    )
-    val pixels = IntArray(size * size)
-
-    for (y in 0 until size) {
-        for (x in 0 until size) {
-            pixels[y * size + x] = if (bitMatrix[x, y]) {
-                android.graphics.Color.BLACK
-            } else {
-                android.graphics.Color.WHITE
-            }
-        }
-    }
-
-    return Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).apply {
-        setPixels(pixels, 0, size, 0, 0, size, size)
-    }
 }

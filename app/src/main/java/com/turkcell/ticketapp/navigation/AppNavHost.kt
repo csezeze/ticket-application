@@ -11,6 +11,7 @@ import com.turkcell.ticketapp.screen.EventDetailScreen
 import com.turkcell.ticketapp.screen.HomeScreen
 import com.turkcell.ticketapp.screen.LoginScreen
 import com.turkcell.ticketapp.screen.RegisterScreen
+import com.turkcell.ticketapp.screen.TicketDetailScreen
 
 @Composable
 fun AppNavHost(
@@ -47,6 +48,9 @@ fun AppNavHost(
             HomeScreen(
                 onEventClick = { eventId ->
                     navController.navigate(EventDetail(eventId))
+                },
+                onTicketClick = { ticketId ->
+                    navController.navigate(TicketDetail(ticketId))
                 }
             )
         }
@@ -65,6 +69,16 @@ fun AppNavHost(
                         }
                         launchSingleTop = true
                     }
+                }
+            )
+        }
+
+        composable<TicketDetail> { backStackEntry ->
+            val ticketDetail = backStackEntry.toRoute<TicketDetail>()
+            TicketDetailScreen(
+                ticketId = ticketDetail.id,
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

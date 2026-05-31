@@ -15,4 +15,11 @@ class TicketRepositoryImpl(
         }.map { ticketDtos ->
             ticketDtos.map { it.toDomain() }
         }
+
+    override suspend fun getTicket(id: String): Result<MyTicket> =
+        runCatchingApi {
+            ticketApi.getTicket(id = id)
+        }.map { ticketDto ->
+            ticketDto.toDomain()
+        }
 }
