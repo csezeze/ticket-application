@@ -1,5 +1,6 @@
 package com.turkcell.ticketapp.screen
 
+import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,9 +17,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +41,7 @@ fun TicketDetailScreen(
     viewModel: TicketDetailViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    KeepScreenBright()
 
     LaunchedEffect(ticketId) {
         viewModel.loadTicket(ticketId)
@@ -68,6 +72,30 @@ fun TicketDetailScreen(
                     ticket = state.ticket!!,
                     onBackClick = onBackClick
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun KeepScreenBright() {
+    val activity = LocalContext.current as? Activity
+
+    DisposableEffect(activity) {
+        val window = activity?.window
+        val originalBrightness = window?.attributes?.screenBrightness
+
+        if (window != null) {
+            val updatedAttributes = window.attributes
+            updatedAttributes.screenBrightness = 1f
+            window.attributes = updatedAttributes
+        }
+
+        onDispose {
+            if (window != null && originalBrightness != null) {
+                val restoredAttributes = window.attributes
+                restoredAttributes.screenBrightness = originalBrightness
+                window.attributes = restoredAttributes
             }
         }
     }
