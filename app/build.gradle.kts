@@ -70,4 +70,5 @@ dependencies {
     // ViewModel+Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.zxing.core)
 }

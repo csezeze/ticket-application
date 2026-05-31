@@ -47,14 +47,15 @@ data class MyTicketTypeDto(
 data class TicketEventDto(
     val id: String,
     val name: String,
-    val venue: String,
-    val startsAt: String
+    val venue: String? = null,
+    val place: String? = null,
+    val startsAt: String = ""
 ) {
     fun toDomain(): TicketEvent {
         return TicketEvent(
             id = id,
             name = name,
-            venue = venue,
+            venue = venue ?: place ?: "Konum belirtilmemis",
             startsAt = startsAt
         )
     }

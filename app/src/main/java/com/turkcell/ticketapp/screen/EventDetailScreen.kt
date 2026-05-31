@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.turkcell.core.domain.Event
+import com.turkcell.core.domain.purchase.Purchase
 import com.turkcell.core.domain.TicketType
 import com.turkcell.core.util.formatEventDate
 import com.turkcell.ticketapp.viewmodel.EventDetailViewModel
@@ -36,13 +38,19 @@ import org.koin.androidx.compose.koinViewModel
 fun EventDetailScreen(
     eventId: String,
     onBackClick: () -> Unit,
-    onPurchaseClick: () -> Unit,
+    onPaymentSuccess: () -> Unit,
     viewModel: EventDetailViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(eventId) {
         viewModel.loadEvent(eventId)
+    }
+
+    LaunchedEffect(state.isPaymentComplete) {
+        if (state.isPaymentComplete) {
+            onPaymentSuccess()
+        }
     }
 
     Surface(
@@ -71,12 +79,24 @@ fun EventDetailScreen(
                     quantities = state.quantities,
                     totalCents = state.totalCents,
                     canPurchase = state.canPurchase,
+                    isCreatingPurchase = state.isCreatingPurchase,
+                    purchaseErrorMessage = state.purchaseErrorMessage,
+                    paymentSuccessMessage = state.paymentSuccessMessage,
                     onBackClick = onBackClick,
                     onIncrease = viewModel::increaseQuantity,
                     onDecrease = viewModel::decreaseQuantity,
-                    onPurchaseClick = onPurchaseClick
+                    onPurchaseClick = viewModel::createPurchase
                 )
             }
+        }
+
+        if (state.showPaymentDialog && state.purchase != null) {
+            PaymentConfirmationDialog(
+                purchase = state.purchase!!,
+                isPaying = state.isPaying,
+                onConfirm = viewModel::payPurchase,
+                onDismiss = viewModel::dismissPaymentDialog
+            )
         }
     }
 }
@@ -87,6 +107,9 @@ private fun EventDetailContent(
     quantities: Map<String, Int>,
     totalCents: Int,
     canPurchase: Boolean,
+    isCreatingPurchase: Boolean,
+    purchaseErrorMessage: String?,
+    paymentSuccessMessage: String?,
     onBackClick: () -> Unit,
     onIncrease: (String) -> Unit,
     onDecrease: (String) -> Unit,
@@ -176,14 +199,76 @@ private fun EventDetailContent(
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        purchaseErrorMessage?.let { message ->
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        paymentSuccessMessage?.let { message ->
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
         Button(
             onClick = onPurchaseClick,
             enabled = canPurchase,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Satin Al")
+            Text(text = if (isCreatingPurchase) "Satin alma hazirlaniyor..." else "Satin Al")
         }
     }
+}
+
+@Composable
+private fun PaymentConfirmationDialog(
+    purchase: Purchase,
+    isPaying: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = {
+            if (!isPaying) {
+                onDismiss()
+            }
+        },
+        title = {
+            Text(text = "Odemeyi onayla")
+        },
+        text = {
+            Column {
+                Text(text = "Toplam tutar: ${formatPrice(purchase.totalCents)}")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Mock odeme tamamlandiginda biletlerin olusturulacak.")
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = !isPaying
+            ) {
+                Text(text = if (isPaying) "Odeniyor..." else "Ode")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isPaying
+            ) {
+                Text(text = "Vazgec")
+            }
+        }
+    )
 }
 
 @Composable
