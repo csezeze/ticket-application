@@ -7,6 +7,7 @@ class NetworkException(cause: Throwable) : RuntimeException("Network Error", cau
 class ApiException(
     val code: Int,
     val errorMessage: String?,
+    val errorCode: String? = null,
     cause: Throwable? = null
 ) : RuntimeException("HTTP $code: $errorMessage", cause)
 

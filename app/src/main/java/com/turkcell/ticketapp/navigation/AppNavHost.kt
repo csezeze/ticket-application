@@ -58,7 +58,14 @@ fun AppNavHost(
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onPurchaseClick = {}
+                onPaymentSuccess = {
+                    navController.navigate(Home) {
+                        popUpTo(Home) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
             )
         }
     }
