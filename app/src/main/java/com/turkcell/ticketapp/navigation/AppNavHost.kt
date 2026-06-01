@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.turkcell.core.domain.AuthRepository
+import com.turkcell.ticketapp.screen.CheckinScreen
 import com.turkcell.ticketapp.screen.EventDetailScreen
 import com.turkcell.ticketapp.screen.HomeScreen
 import com.turkcell.ticketapp.screen.LoginScreen
@@ -83,6 +84,9 @@ fun AppNavHost(
                 onMyPurchasesClick = {
                     navController.navigate(MyPurchases)
                 },
+                onCheckinClick = {
+                    navController.navigate(Checkin)
+                },
                 onLogoutSuccess = {
                     navController.navigate(Login) {
                         popUpTo(Home) {
@@ -117,6 +121,14 @@ fun AppNavHost(
                         }
                         launchSingleTop = true
                     }
+                }
+            )
+        }
+
+        composable<Checkin> {
+            CheckinScreen(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

@@ -16,6 +16,9 @@ object MyTickets
 object MyPurchases
 
 @Serializable
+object Checkin
+
+@Serializable
 data class EventDetail(val id: String)
 
 @Serializable

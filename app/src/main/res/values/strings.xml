@@ -13,6 +13,12 @@
     <string name="logging_out">Cikiliyor...</string>
     <string name="my_tickets">Biletlerim</string>
     <string name="my_purchases">Satin Alimlarim</string>
+    <string name="checkin_title">Bilet Kontrol</string>
+    <string name="checkin_qr_label">QR kod</string>
+    <string name="checkin_scan_button">Kontrol Et</string>
+    <string name="checkin_scanning">Kontrol ediliyor...</string>
+    <string name="checkin_success">Check-in basarili</string>
+    <string name="checkin_time">Kontrol zamani: %1$s</string>
     <string name="my_purchases_with_count">Satin Alimlarim (%1$d)</string>
     <string name="purchases_load_error">Satin alimlar yuklenemedi.</string>
     <string name="purchases_empty">Henuz satin alimin yok.</string>

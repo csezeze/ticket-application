@@ -38,6 +38,7 @@ fun HomeScreen(
     onEventClick: (String) -> Unit,
     onMyTicketsClick: () -> Unit,
     onMyPurchasesClick: () -> Unit,
+    onCheckinClick: () -> Unit,
     onLogoutSuccess: () -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
@@ -112,6 +113,15 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = stringResource(R.string.my_purchases))
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onCheckinClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.checkin_title))
             }
 
             Spacer(modifier = Modifier.height(24.dp))

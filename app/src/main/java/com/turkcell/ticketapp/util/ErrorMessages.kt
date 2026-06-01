@@ -40,5 +40,19 @@ fun Throwable.toPurchaseUserMessage(): String = when (this) {
     else -> toUserMessage()
 }
 
+fun Throwable.toCheckinUserMessage(): String = when (this) {
+    is ApiException -> when (errorCode) {
+        "ticket_not_found" -> "Bilet bulunamadi veya QR gecersiz"
+        "not_assigned" -> "Bu etkinlik icin gorevli degilsin"
+        "already_used" -> "Bu bilet daha once kullanilmis"
+        else -> when (code) {
+            401, 403 -> "Bu islem icin STAFF veya ADMIN yetkisi gerekir"
+            in 500..599 -> "Sunucu su anda cevap veremiyor"
+            else -> errorMessage ?: "Bilet kontrolu sirasinda hata olustu"
+        }
+    }
+    else -> toUserMessage()
+}
+
 fun Throwable.isCapacityExceeded(): Boolean =
     this is ApiException && errorCode == "capacity_exceeded"
