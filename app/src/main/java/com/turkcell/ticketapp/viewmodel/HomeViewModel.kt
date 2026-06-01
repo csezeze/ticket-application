@@ -2,6 +2,7 @@ package com.turkcell.ticketapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.turkcell.core.domain.AuthRepository
 import com.turkcell.core.domain.EventRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,7 +11,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
-    private val eventRepository: EventRepository
+    private val eventRepository: EventRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
@@ -22,6 +24,35 @@ class HomeViewModel(
 
     fun loadHomeData() {
         loadEvents()
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isLoggingOut = true,
+                    logoutErrorMessage = null
+                )
+            }
+
+            authRepository.logout()
+                .onSuccess {
+                    _state.update {
+                        it.copy(
+                            isLoggingOut = false,
+                            isLoggedOut = true
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _state.update {
+                        it.copy(
+                            isLoggingOut = false,
+                            logoutErrorMessage = error.toUserMessage()
+                        )
+                    }
+                }
+        }
     }
 
     private fun loadEvents() {

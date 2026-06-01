@@ -52,6 +52,14 @@ fun AppNavHost(
                 },
                 onMyTicketsClick = {
                     navController.navigate(MyTickets)
+                },
+                onLogoutSuccess = {
+                    navController.navigate(Login) {
+                        popUpTo(Home) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
