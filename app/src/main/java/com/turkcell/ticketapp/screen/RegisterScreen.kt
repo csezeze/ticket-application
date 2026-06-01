@@ -18,8 +18,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.turkcell.ticketapp.R
 import com.turkcell.ticketapp.viewmodel.RegisterViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -38,7 +40,7 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Create Account",
+            text = stringResource(R.string.register_title),
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -47,7 +49,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = uiState.email,
             onValueChange = viewModel::onEmailChange,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.email_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )
@@ -57,7 +59,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = uiState.password,
             onValueChange = viewModel::onPasswordChange,
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.password_label)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             visualTransformation = PasswordVisualTransformation()
@@ -70,7 +72,7 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !uiState.isLoading
         ) {
-            Text("Register")
+            Text(stringResource(R.string.register_button))
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -78,7 +80,7 @@ fun RegisterScreen(
         TextButton(
             onClick = onNavigateToLogin
         ) {
-            Text("Already have an account? Login")
+            Text(stringResource(R.string.navigate_login))
         }
 
         Spacer(modifier = Modifier.height(16.dp))

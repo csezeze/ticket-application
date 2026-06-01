@@ -24,10 +24,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.turkcell.core.domain.Event
 import com.turkcell.core.util.formatEventDate
+import com.turkcell.ticketapp.R
 import com.turkcell.ticketapp.viewmodel.HomeViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -65,7 +67,7 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Ana Sayfa",
+                    text = stringResource(R.string.home_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -74,7 +76,13 @@ fun HomeScreen(
                     onClick = viewModel::logout,
                     enabled = !state.isLoggingOut
                 ) {
-                    Text(text = if (state.isLoggingOut) "Cikiliyor..." else "Cikis")
+                    Text(
+                        text = if (state.isLoggingOut) {
+                            stringResource(R.string.logging_out)
+                        } else {
+                            stringResource(R.string.logout)
+                        }
+                    )
                 }
             }
 
@@ -93,13 +101,13 @@ fun HomeScreen(
                 onClick = onMyTicketsClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = "Biletlerim")
+                Text(text = stringResource(R.string.my_tickets))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Etkinlikler",
+                text = stringResource(R.string.events),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -113,7 +121,7 @@ fun HomeScreen(
 
                 state.eventErrorMessage != null -> {
                     Text(
-                        text = state.eventErrorMessage ?: "Etkinlikler yuklenemedi.",
+                        text = state.eventErrorMessage ?: stringResource(R.string.events_load_error),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -121,7 +129,7 @@ fun HomeScreen(
 
                 state.events.isEmpty() -> {
                     Text(
-                        text = "Su anda gosterilecek etkinlik yok.",
+                        text = stringResource(R.string.events_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

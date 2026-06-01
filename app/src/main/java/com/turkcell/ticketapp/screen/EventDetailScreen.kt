@@ -25,12 +25,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.turkcell.core.domain.Event
 import com.turkcell.core.domain.purchase.Purchase
 import com.turkcell.core.domain.TicketType
 import com.turkcell.core.util.formatEventDate
+import com.turkcell.ticketapp.R
 import com.turkcell.ticketapp.viewmodel.EventDetailViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -64,13 +66,13 @@ fun EventDetailScreen(
 
             state.errorMessage != null -> {
                 MessageContent(
-                    message = state.errorMessage ?: "Etkinlik yuklenemedi.",
+                    message = state.errorMessage ?: stringResource(R.string.event_load_error),
                     isError = true
                 )
             }
 
             state.event == null -> {
-                MessageContent(message = "Etkinlik bulunamadi.")
+                MessageContent(message = stringResource(R.string.event_not_found))
             }
 
             else -> {
@@ -125,7 +127,7 @@ private fun EventDetailContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         TextButton(onClick = onBackClick) {
-            Text(text = "Geri")
+            Text(text = stringResource(R.string.back))
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -164,7 +166,7 @@ private fun EventDetailContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Bilet turleri",
+            text = stringResource(R.string.ticket_types),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -173,7 +175,7 @@ private fun EventDetailContent(
 
         if (event.ticketTypes.isEmpty()) {
             Text(
-                text = "Bu etkinlik icin bilet turu bulunamadi.",
+                text = stringResource(R.string.ticket_types_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -192,7 +194,7 @@ private fun EventDetailContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Toplam: ${formatPrice(totalCents)}",
+            text = stringResource(R.string.total_label, formatPrice(totalCents)),
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -224,7 +226,13 @@ private fun EventDetailContent(
             enabled = canPurchase,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = if (isCreatingPurchase) "Satin alma hazirlaniyor..." else "Satin Al")
+            Text(
+                text = if (isCreatingPurchase) {
+                    stringResource(R.string.purchase_loading)
+                } else {
+                    stringResource(R.string.purchase_button)
+                }
+            )
         }
     }
 }
@@ -243,13 +251,13 @@ private fun PaymentConfirmationDialog(
             }
         },
         title = {
-            Text(text = "Odemeyi onayla")
+            Text(text = stringResource(R.string.payment_confirm_title))
         },
         text = {
             Column {
-                Text(text = "Toplam tutar: ${formatPrice(purchase.totalCents)}")
+                Text(text = stringResource(R.string.payment_total, formatPrice(purchase.totalCents)))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Mock odeme tamamlandiginda biletlerin olusturulacak.")
+                Text(text = stringResource(R.string.payment_mock_info))
             }
         },
         confirmButton = {
@@ -257,7 +265,13 @@ private fun PaymentConfirmationDialog(
                 onClick = onConfirm,
                 enabled = !isPaying
             ) {
-                Text(text = if (isPaying) "Odeniyor..." else "Ode")
+                Text(
+                    text = if (isPaying) {
+                        stringResource(R.string.paying)
+                    } else {
+                        stringResource(R.string.pay)
+                    }
+                )
             }
         },
         dismissButton = {
@@ -265,7 +279,7 @@ private fun PaymentConfirmationDialog(
                 onClick = onDismiss,
                 enabled = !isPaying
             ) {
-                Text(text = "Vazgec")
+                Text(text = stringResource(R.string.cancel))
             }
         }
     )
@@ -295,7 +309,11 @@ private fun TicketTypeRow(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${ticketType.remaining}/${ticketType.capacity} kalan",
+                    text = stringResource(
+                        R.string.remaining_capacity,
+                        ticketType.remaining,
+                        ticketType.capacity
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -3,7 +3,7 @@ package com.turkcell.ticketapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turkcell.core.domain.AuthRepository
-import com.turkcell.data.network.ApiException
+import com.turkcell.ticketapp.util.toRegisterUserMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -101,13 +101,4 @@ class RegisterViewModel(
     private fun isValidEmail(email: String): Boolean {
         return Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$").matches(email)
     }
-}
-
-private fun Throwable.toRegisterUserMessage(): String = when (this) {
-    is ApiException -> when (code) {
-        409 -> "Bu email zaten kayitli"
-        in 500..599 -> "Sunucu su anda cevap veremiyor"
-        else -> "Kayit sirasinda hata olustu"
-    }
-    else -> toUserMessage()
 }

@@ -30,9 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.turkcell.core.domain.MyTicket
+import com.turkcell.ticketapp.R
 import com.turkcell.ticketapp.util.createQrBitmap
 import com.turkcell.ticketapp.viewmodel.MyTicketsViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -64,16 +66,16 @@ fun MyTicketsScreen(
                     Spacer(modifier = Modifier.height(32.dp))
 
                     TextButton(onClick = onBackClick) {
-                        Text(text = "Geri")
+                        Text(text = stringResource(R.string.back))
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
                         text = if (state.tickets.isEmpty()) {
-                            "Biletlerim"
+                            stringResource(R.string.my_tickets)
                         } else {
-                            "Biletlerim (${state.tickets.size})"
+                            stringResource(R.string.my_tickets_with_count, state.tickets.size)
                         },
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onBackground
@@ -92,7 +94,7 @@ fun MyTicketsScreen(
                     state.errorMessage != null && state.tickets.isEmpty() -> {
                         item {
                             MessageTickets(
-                                message = state.errorMessage ?: "Biletler yuklenemedi.",
+                                message = state.errorMessage ?: stringResource(R.string.tickets_load_error),
                                 isError = true
                             )
                         }
@@ -100,7 +102,7 @@ fun MyTicketsScreen(
 
                     state.tickets.isEmpty() -> {
                         item {
-                            MessageTickets(message = "Henuz biletin yok.")
+                            MessageTickets(message = stringResource(R.string.tickets_empty))
                         }
                     }
 
@@ -160,7 +162,7 @@ private fun TicketCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Bilet #$ticketNumber",
+                    text = stringResource(R.string.ticket_number, ticketNumber),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -168,7 +170,7 @@ private fun TicketCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Tur: ${ticket.ticketType.name}",
+                    text = stringResource(R.string.ticket_type_label, ticket.ticketType.name),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -177,7 +179,7 @@ private fun TicketCard(
                 if (venue.isNotBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Konum: $venue",
+                        text = stringResource(R.string.venue_label, venue),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -186,7 +188,7 @@ private fun TicketCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Durum: ${ticket.status}",
+                    text = stringResource(R.string.status_label, ticket.status),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -194,7 +196,7 @@ private fun TicketCard(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Kod: ${ticket.qrCode.takeLast(8)}",
+                    text = stringResource(R.string.short_code_label, ticket.qrCode.takeLast(8)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -222,7 +224,7 @@ private fun QrCodeImage(content: String) {
     ) {
         Image(
             bitmap = qrBitmap.asImageBitmap(),
-            contentDescription = "Bilet QR kodu",
+            contentDescription = stringResource(R.string.ticket_qr_content_description),
             modifier = Modifier.fillMaxSize()
         )
     }

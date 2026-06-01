@@ -26,10 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.turkcell.core.domain.MyTicket
 import com.turkcell.core.util.formatEventDate
+import com.turkcell.ticketapp.R
 import com.turkcell.ticketapp.util.createQrBitmap
 import com.turkcell.ticketapp.viewmodel.TicketDetailViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -58,13 +60,13 @@ fun TicketDetailScreen(
 
             state.errorMessage != null -> {
                 MessageTicketDetail(
-                    message = state.errorMessage ?: "Bilet yuklenemedi.",
+                    message = state.errorMessage ?: stringResource(R.string.ticket_load_error),
                     isError = true
                 )
             }
 
             state.ticket == null -> {
-                MessageTicketDetail(message = "Bilet bulunamadi.")
+                MessageTicketDetail(message = stringResource(R.string.ticket_not_found))
             }
 
             else -> {
@@ -122,7 +124,7 @@ private fun TicketDetailContent(
             modifier = Modifier.align(Alignment.Start),
             onClick = onBackClick
         ) {
-            Text(text = "Geri")
+            Text(text = stringResource(R.string.back))
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -162,7 +164,7 @@ private fun TicketDetailContent(
         ) {
             Image(
                 bitmap = qrBitmap.asImageBitmap(),
-                contentDescription = "Bilet QR kodu",
+                contentDescription = stringResource(R.string.ticket_qr_content_description),
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -170,7 +172,7 @@ private fun TicketDetailContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Durum: ${ticket.status}",
+            text = stringResource(R.string.status_label, ticket.status),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.primary
         )
@@ -178,7 +180,7 @@ private fun TicketDetailContent(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Kod: ${ticket.qrCode}",
+            text = stringResource(R.string.full_code_label, ticket.qrCode),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
