@@ -13,6 +13,9 @@ object Home
 object MyTickets
 
 @Serializable
+object MyPurchases
+
+@Serializable
 data class EventDetail(val id: String)
 
 @Serializable

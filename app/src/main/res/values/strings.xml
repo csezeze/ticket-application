@@ -12,6 +12,17 @@
     <string name="logout">Cikis</string>
     <string name="logging_out">Cikiliyor...</string>
     <string name="my_tickets">Biletlerim</string>
+    <string name="my_purchases">Satin Alimlarim</string>
+    <string name="my_purchases_with_count">Satin Alimlarim (%1$d)</string>
+    <string name="purchases_load_error">Satin alimlar yuklenemedi.</string>
+    <string name="purchases_empty">Henuz satin alimin yok.</string>
+    <string name="purchase_number">Satin alim #%1$d</string>
+    <string name="purchase_status">Durum: %1$s</string>
+    <string name="purchase_item_count">Kalem: %1$d</string>
+    <string name="purchase_created_at">Olusturma: %1$s</string>
+    <string name="purchase_paid_at">Odeme: %1$s</string>
+    <string name="continue_payment">Odemeye devam et</string>
+    <string name="payment_success_tickets">Odeme basarili. Biletlerine yonlendiriliyorsun.</string>
     <string name="my_tickets_with_count">Biletlerim (%1$d)</string>
     <string name="events">Etkinlikler</string>
     <string name="events_load_error">Etkinlikler yuklenemedi.</string>

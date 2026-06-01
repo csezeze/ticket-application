@@ -4,4 +4,5 @@ interface PurchaseRepository {
     suspend fun createPurchase(ticketTypeQuantities: Map<String, Int>): Result<Purchase>
     suspend fun payPurchase(id: String): Result<Purchase>
     suspend fun getPurchase(id: String): Result<Purchase>
+    suspend fun getMyPurchases(): Result<List<Purchase>>
 }

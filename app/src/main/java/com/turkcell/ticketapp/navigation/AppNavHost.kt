@@ -18,6 +18,7 @@ import com.turkcell.core.domain.AuthRepository
 import com.turkcell.ticketapp.screen.EventDetailScreen
 import com.turkcell.ticketapp.screen.HomeScreen
 import com.turkcell.ticketapp.screen.LoginScreen
+import com.turkcell.ticketapp.screen.MyPurchasesScreen
 import com.turkcell.ticketapp.screen.MyTicketsScreen
 import com.turkcell.ticketapp.screen.RegisterScreen
 import com.turkcell.ticketapp.screen.TicketDetailScreen
@@ -79,6 +80,9 @@ fun AppNavHost(
                 onMyTicketsClick = {
                     navController.navigate(MyTickets)
                 },
+                onMyPurchasesClick = {
+                    navController.navigate(MyPurchases)
+                },
                 onLogoutSuccess = {
                     navController.navigate(Login) {
                         popUpTo(Home) {
@@ -97,6 +101,22 @@ fun AppNavHost(
                 },
                 onTicketClick = { ticketId ->
                     navController.navigate(TicketDetail(ticketId))
+                }
+            )
+        }
+
+        composable<MyPurchases> {
+            MyPurchasesScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onPaymentSuccess = {
+                    navController.navigate(MyTickets) {
+                        popUpTo(MyPurchases) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

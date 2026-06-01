@@ -37,6 +37,7 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeScreen(
     onEventClick: (String) -> Unit,
     onMyTicketsClick: () -> Unit,
+    onMyPurchasesClick: () -> Unit,
     onLogoutSuccess: () -> Unit,
     viewModel: HomeViewModel = koinViewModel()
 ) {
@@ -102,6 +103,15 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = stringResource(R.string.my_tickets))
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onMyPurchasesClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(R.string.my_purchases))
             }
 
             Spacer(modifier = Modifier.height(24.dp))
