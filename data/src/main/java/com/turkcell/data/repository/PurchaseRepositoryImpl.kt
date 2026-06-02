@@ -44,4 +44,11 @@ class PurchaseRepositoryImpl(
         }.map { purchaseDto ->
             purchaseDto.toDomain()
         }
+
+    override suspend fun getMyPurchases(): Result<List<Purchase>> =
+        runCatchingApi {
+            purchaseApi.getMyPurchases()
+        }.map { purchaseDtos ->
+            purchaseDtos.map { it.toDomain() }
+        }
 }

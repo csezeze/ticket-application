@@ -2,8 +2,9 @@ package com.turkcell.ticketapp.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.turkcell.core.domain.AuthRepository
 import com.turkcell.core.domain.EventRepository
-import com.turkcell.core.domain.TicketRepository
+import com.turkcell.ticketapp.util.toUserMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,19 +13,47 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(
     private val eventRepository: EventRepository,
-    private val ticketRepository: TicketRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
     init {
-        loadHomeData()
+        loadEvents()
     }
 
     fun loadHomeData() {
         loadEvents()
-        loadTickets()
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            _state.update {
+                it.copy(
+                    isLoggingOut = true,
+                    logoutErrorMessage = null
+                )
+            }
+
+            authRepository.logout()
+                .onSuccess {
+                    _state.update {
+                        it.copy(
+                            isLoggingOut = false,
+                            isLoggedOut = true
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _state.update {
+                        it.copy(
+                            isLoggingOut = false,
+                            logoutErrorMessage = error.toUserMessage()
+                        )
+                    }
+                }
+        }
     }
 
     private fun loadEvents() {
@@ -50,35 +79,6 @@ class HomeViewModel(
                         it.copy(
                             isLoadingEvents = false,
                             eventErrorMessage = error.toUserMessage()
-                        )
-                    }
-                }
-        }
-    }
-
-    private fun loadTickets() {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoadingTickets = true,
-                    ticketErrorMessage = null
-                )
-            }
-
-            ticketRepository.getMyTickets()
-                .onSuccess { tickets ->
-                    _state.update {
-                        it.copy(
-                            isLoadingTickets = false,
-                            tickets = tickets
-                        )
-                    }
-                }
-                .onFailure { error ->
-                    _state.update {
-                        it.copy(
-                            isLoadingTickets = false,
-                            ticketErrorMessage = error.toUserMessage()
                         )
                     }
                 }

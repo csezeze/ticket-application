@@ -1,10 +1,13 @@
 package com.turkcell.ticketapp.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turkcell.core.domain.EventRepository
 import com.turkcell.core.domain.purchase.PurchaseRepository
-import com.turkcell.data.network.ApiException
+import com.turkcell.ticketapp.util.isCapacityExceeded
+import com.turkcell.ticketapp.util.toPurchaseUserMessage
+import com.turkcell.ticketapp.util.toUserMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class EventDetailViewModel(
+    savedStateHandle: SavedStateHandle,
     private val eventRepository: EventRepository,
     private val purchaseRepository: PurchaseRepository
 ) : ViewModel() {
@@ -19,11 +23,25 @@ class EventDetailViewModel(
     private val _state = MutableStateFlow(EventDetailUiState())
     val state: StateFlow<EventDetailUiState> = _state.asStateFlow()
 
+    private val eventId: String = savedStateHandle["id"] ?: ""
     private var loadedEventId: String? = null
 
-    fun loadEvent(id: String) {
-        if (loadedEventId == id && _state.value.event != null) return
-        loadedEventId = id
+    init {
+        if (eventId.isBlank()) {
+            _state.update {
+                it.copy(errorMessage = "Etkinlik bulunamadi.")
+            }
+        } else {
+            loadEvent(forceRefresh = false)
+        }
+    }
+
+    private fun loadEvent(
+        forceRefresh: Boolean,
+        purchaseErrorMessage: String? = null
+    ) {
+        if (!forceRefresh && loadedEventId == eventId && _state.value.event != null) return
+        loadedEventId = eventId
 
         viewModelScope.launch {
             _state.update {
@@ -36,13 +54,13 @@ class EventDetailViewModel(
                     isCreatingPurchase = false,
                     isPaying = false,
                     showPaymentDialog = false,
-                    purchaseErrorMessage = null,
+                    purchaseErrorMessage = purchaseErrorMessage,
                     paymentSuccessMessage = null,
                     isPaymentComplete = false
                 )
             }
 
-            eventRepository.getEvent(id)
+            eventRepository.getEvent(eventId)
                 .onSuccess { event ->
                     _state.update {
                         it.copy(
@@ -125,6 +143,12 @@ class EventDetailViewModel(
                             purchaseErrorMessage = error.toPurchaseUserMessage()
                         )
                     }
+                    if (error.isCapacityExceeded()) {
+                        loadEvent(
+                            forceRefresh = true,
+                            purchaseErrorMessage = error.toPurchaseUserMessage()
+                        )
+                    }
                 }
         }
     }
@@ -168,21 +192,13 @@ class EventDetailViewModel(
                             purchaseErrorMessage = error.toPurchaseUserMessage()
                         )
                     }
+                    if (error.isCapacityExceeded()) {
+                        loadEvent(
+                            forceRefresh = true,
+                            purchaseErrorMessage = error.toPurchaseUserMessage()
+                        )
+                    }
                 }
         }
     }
-}
-
-private fun Throwable.toPurchaseUserMessage(): String = when (this) {
-    is ApiException -> when (errorCode) {
-        "capacity_exceeded" -> "Stok yetersiz, yenile"
-        "already_paid" -> "Bu satin alma zaten odenmis"
-        "not_purchase_owner" -> "Bu satin alma sana ait degil"
-        else -> when (code) {
-            401, 403 -> "Bu islem icin tekrar giris yapman gerekebilir"
-            in 500..599 -> "Sunucu su anda cevap veremiyor"
-            else -> errorMessage ?: "Satin alma sirasinda hata olustu"
-        }
-    }
-    else -> toUserMessage()
 }

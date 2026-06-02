@@ -22,4 +22,7 @@ interface PurchaseApi {
     suspend fun getPurchase(
         @Path("id") id: String
     ): PurchaseDto
+
+    @GET("/me/purchases")
+    suspend fun getMyPurchases(): List<PurchaseDto>
 }
