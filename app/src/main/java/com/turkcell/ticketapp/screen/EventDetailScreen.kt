@@ -38,16 +38,11 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun EventDetailScreen(
-    eventId: String,
     onBackClick: () -> Unit,
     onPaymentSuccess: () -> Unit,
     viewModel: EventDetailViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(eventId) {
-        viewModel.loadEvent(eventId)
-    }
 
     LaunchedEffect(state.isPaymentComplete) {
         if (state.isPaymentComplete) {

@@ -1,5 +1,6 @@
 package com.turkcell.ticketapp.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turkcell.core.domain.TicketRepository
@@ -11,17 +12,29 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TicketDetailViewModel(
+    savedStateHandle: SavedStateHandle,
     private val ticketRepository: TicketRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TicketDetailUiState())
     val state: StateFlow<TicketDetailUiState> = _state.asStateFlow()
 
+    private val ticketId: String = savedStateHandle["id"] ?: ""
     private var loadedTicketId: String? = null
 
-    fun loadTicket(id: String) {
-        if (loadedTicketId == id && _state.value.ticket != null) return
-        loadedTicketId = id
+    init {
+        if (ticketId.isBlank()) {
+            _state.update {
+                it.copy(errorMessage = "Bilet bulunamadi.")
+            }
+        } else {
+            loadTicket()
+        }
+    }
+
+    private fun loadTicket() {
+        if (loadedTicketId == ticketId && _state.value.ticket != null) return
+        loadedTicketId = ticketId
 
         viewModelScope.launch {
             _state.update {
@@ -32,7 +45,7 @@ class TicketDetailViewModel(
                 )
             }
 
-            ticketRepository.getTicket(id)
+            ticketRepository.getTicket(ticketId)
                 .onSuccess { ticket ->
                     _state.update {
                         it.copy(

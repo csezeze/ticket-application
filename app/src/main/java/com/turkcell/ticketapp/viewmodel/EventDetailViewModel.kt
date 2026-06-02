@@ -1,5 +1,6 @@
 package com.turkcell.ticketapp.viewmodel
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turkcell.core.domain.EventRepository
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class EventDetailViewModel(
+    savedStateHandle: SavedStateHandle,
     private val eventRepository: EventRepository,
     private val purchaseRepository: PurchaseRepository
 ) : ViewModel() {
@@ -21,19 +23,25 @@ class EventDetailViewModel(
     private val _state = MutableStateFlow(EventDetailUiState())
     val state: StateFlow<EventDetailUiState> = _state.asStateFlow()
 
+    private val eventId: String = savedStateHandle["id"] ?: ""
     private var loadedEventId: String? = null
 
-    fun loadEvent(id: String) {
-        loadEvent(id = id, forceRefresh = false)
+    init {
+        if (eventId.isBlank()) {
+            _state.update {
+                it.copy(errorMessage = "Etkinlik bulunamadi.")
+            }
+        } else {
+            loadEvent(forceRefresh = false)
+        }
     }
 
     private fun loadEvent(
-        id: String,
         forceRefresh: Boolean,
         purchaseErrorMessage: String? = null
     ) {
-        if (!forceRefresh && loadedEventId == id && _state.value.event != null) return
-        loadedEventId = id
+        if (!forceRefresh && loadedEventId == eventId && _state.value.event != null) return
+        loadedEventId = eventId
 
         viewModelScope.launch {
             _state.update {
@@ -52,7 +60,7 @@ class EventDetailViewModel(
                 )
             }
 
-            eventRepository.getEvent(id)
+            eventRepository.getEvent(eventId)
                 .onSuccess { event ->
                     _state.update {
                         it.copy(
@@ -129,16 +137,14 @@ class EventDetailViewModel(
                     }
                 }
                 .onFailure { error ->
-                    val eventId = loadedEventId
                     _state.update {
                         it.copy(
                             isCreatingPurchase = false,
                             purchaseErrorMessage = error.toPurchaseUserMessage()
                         )
                     }
-                    if (eventId != null && error.isCapacityExceeded()) {
+                    if (error.isCapacityExceeded()) {
                         loadEvent(
-                            id = eventId,
                             forceRefresh = true,
                             purchaseErrorMessage = error.toPurchaseUserMessage()
                         )
@@ -179,7 +185,6 @@ class EventDetailViewModel(
                     }
                 }
                 .onFailure { error ->
-                    val eventId = loadedEventId
                     _state.update {
                         it.copy(
                             isPaying = false,
@@ -187,9 +192,8 @@ class EventDetailViewModel(
                             purchaseErrorMessage = error.toPurchaseUserMessage()
                         )
                     }
-                    if (eventId != null && error.isCapacityExceeded()) {
+                    if (error.isCapacityExceeded()) {
                         loadEvent(
-                            id = eventId,
                             forceRefresh = true,
                             purchaseErrorMessage = error.toPurchaseUserMessage()
                         )
