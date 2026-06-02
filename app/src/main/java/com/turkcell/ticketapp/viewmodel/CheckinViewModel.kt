@@ -27,6 +27,27 @@ class CheckinViewModel(
         }
     }
 
+    fun toggleCamera() {
+        _state.update {
+            it.copy(isCameraVisible = !it.isCameraVisible)
+        }
+    }
+
+    fun onQrCodeScanned(qrCode: String) {
+        val scannedQrCode = qrCode.trim()
+        if (scannedQrCode.isBlank() || state.value.isLoading) return
+
+        _state.update {
+            it.copy(
+                qrCode = scannedQrCode,
+                isCameraVisible = false,
+                errorMessage = null,
+                result = null
+            )
+        }
+        scanTicket()
+    }
+
     fun scanTicket() {
         val qrCode = state.value.qrCode.trim()
         if (qrCode.isBlank()) {

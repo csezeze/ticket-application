@@ -16,6 +16,10 @@
     <string name="checkin_title">Bilet Kontrol</string>
     <string name="checkin_qr_label">QR kod</string>
     <string name="checkin_scan_button">Kontrol Et</string>
+    <string name="checkin_camera_scan">Kameradan Tara</string>
+    <string name="checkin_camera_close">Kamerayi Kapat</string>
+    <string name="checkin_camera_permission">Kamera ile QR okutmak icin izin vermen gerekiyor.</string>
+    <string name="checkin_camera_permission_button">Kamera Izni Ver</string>
     <string name="checkin_scanning">Kontrol ediliyor...</string>
     <string name="checkin_success">Check-in basarili</string>
     <string name="checkin_time">Kontrol zamani: %1$s</string>
