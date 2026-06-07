@@ -2,13 +2,9 @@ package com.turkcell.ticketapp.navigation
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,7 +32,10 @@ fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     authRepository: AuthRepository = koinInject()
 ) {
-    val authState by produceState<AuthNavigationState?>(initialValue = null, authRepository) {
+    val authState by produceState(
+        initialValue = AuthNavigationState(isLoggedIn = false, userRole = null),
+        authRepository
+    ) {
         combine(
             authRepository.isLoggedIn,
             authRepository.currentUserRole
@@ -50,23 +49,24 @@ fun AppNavHost(
         }
     }
 
-    if (authState == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
+    LaunchedEffect(authState) {
+        val isOnLogin = navController.currentBackStackEntry
+            ?.destination
+            ?.route == Login::class.qualifiedName
+
+        if (authState.isLoggedIn && isOnLogin) {
+            navController.navigate(destinationForRole(authState.userRole)) {
+                popUpTo(Login) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         }
-        return
     }
 
     NavHost(
         navController = navController,
-        startDestination = if (authState?.isLoggedIn == true) {
-            destinationForRole(authState?.userRole)
-        } else {
-            Login
-        }
+        startDestination = Login
     ) {
         composable<Login> {
             LoginScreen(
@@ -146,7 +146,14 @@ fun AppNavHost(
         composable<Checkin> {
             CheckinScreen(
                 onBackClick = {
-                    navController.popBackStack()
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Login) {
+                            popUpTo(Checkin) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }
