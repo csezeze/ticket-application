@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.turkcell.core.domain.AuthRepository
+import com.turkcell.core.domain.UserRole
 import com.turkcell.ticketapp.screen.CheckinScreen
 import com.turkcell.ticketapp.screen.EventDetailScreen
 import com.turkcell.ticketapp.screen.HomeScreen
@@ -22,20 +23,34 @@ import com.turkcell.ticketapp.screen.MyPurchasesScreen
 import com.turkcell.ticketapp.screen.MyTicketsScreen
 import com.turkcell.ticketapp.screen.RegisterScreen
 import com.turkcell.ticketapp.screen.TicketDetailScreen
+import kotlinx.coroutines.flow.combine
 import org.koin.compose.koinInject
+
+private data class AuthNavigationState(
+    val isLoggedIn: Boolean,
+    val userRole: UserRole?
+)
 
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberNavController(),
     authRepository: AuthRepository = koinInject()
 ) {
-    val isLoggedIn by produceState<Boolean?>(initialValue = null, authRepository) {
-        authRepository.isLoggedIn.collect { loggedIn ->
-            value = loggedIn
+    val authState by produceState<AuthNavigationState?>(initialValue = null, authRepository) {
+        combine(
+            authRepository.isLoggedIn,
+            authRepository.currentUserRole
+        ) { loggedIn, userRole ->
+            AuthNavigationState(
+                isLoggedIn = loggedIn,
+                userRole = userRole
+            )
+        }.collect { state ->
+            value = state
         }
     }
 
-    if (isLoggedIn == null) {
+    if (authState == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -47,12 +62,16 @@ fun AppNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn == true) Home else Login
+        startDestination = if (authState?.isLoggedIn == true) {
+            destinationForRole(authState?.userRole)
+        } else {
+            Login
+        }
     ) {
         composable<Login> {
             LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(Home) {
+                onLoginSuccess = { userRole ->
+                    navController.navigate(destinationForRole(userRole)) {
                         popUpTo(Login) {
                             inclusive = true
                         }
@@ -155,5 +174,14 @@ fun AppNavHost(
                 }
             )
         }
+    }
+}
+
+private fun destinationForRole(userRole: UserRole?): Any {
+    return when (userRole) {
+        UserRole.STAFF,
+        UserRole.ADMIN -> Checkin
+        UserRole.USER,
+        null -> Home
     }
 }

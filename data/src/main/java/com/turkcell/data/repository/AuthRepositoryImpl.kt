@@ -5,6 +5,7 @@ import com.turkcell.core.domain.AuthSession
 import com.turkcell.core.domain.User
 import com.turkcell.core.domain.UserRole
 import com.turkcell.data.dto.CredentialsDto
+import com.turkcell.data.dto.TokenPairDto
 import com.turkcell.data.local.TokenStore
 import com.turkcell.data.remote.AuthApi
 import com.turkcell.data.util.runCatchingApi
@@ -21,26 +22,20 @@ class AuthRepositoryImpl(
             token != null
         }
 
+    override val currentUserRole: Flow<UserRole?> =
+        tokenStore.userRole.map { role ->
+            role?.let { UserRole.fromApi(it) }
+        }
+
     override suspend fun login(
         email: String,
         password: String
     ): Result<AuthSession> = runCatchingApi {
         authApi.login(CredentialsDto(email = email, password = password))
     }.onSuccess { tokenPair ->
-        tokenStore.save(
-            access = tokenPair.accessToken,
-            refresh = tokenPair.refreshToken
-        )
+        tokenStore.saveSession(tokenPair)
     }.map { tokenPair ->
-        AuthSession(
-            user = User(
-                tokenPair.user.id,
-                tokenPair.user.email,
-                UserRole.fromApi(tokenPair.user.role)
-            ),
-            accessToken = tokenPair.accessToken,
-            refreshToken = tokenPair.refreshToken
-        )
+        tokenPair.toAuthSession()
     }
 
     override suspend fun register(
@@ -49,23 +44,34 @@ class AuthRepositoryImpl(
     ): Result<AuthSession> = runCatchingApi {
         authApi.register(CredentialsDto(email = email, password = password))
     }.onSuccess { tokenPair ->
-        tokenStore.save(
-            access = tokenPair.accessToken,
-            refresh = tokenPair.refreshToken
-        )
+        tokenStore.saveSession(tokenPair)
     }.map { tokenPair ->
-        AuthSession(
-            user = User(
-                tokenPair.user.id,
-                tokenPair.user.email,
-                UserRole.fromApi(tokenPair.user.role)
-            ),
-            accessToken = tokenPair.accessToken,
-            refreshToken = tokenPair.refreshToken
-        )
+        tokenPair.toAuthSession()
     }
 
     override suspend fun logout(): Result<Unit> = runCatching {
         tokenStore.clear()
+    }
+
+    private suspend fun TokenStore.saveSession(tokenPair: TokenPairDto) {
+        save(
+            access = tokenPair.accessToken,
+            refresh = tokenPair.refreshToken,
+            userId = tokenPair.user.id,
+            userEmail = tokenPair.user.email,
+            userRole = tokenPair.user.role
+        )
+    }
+
+    private fun TokenPairDto.toAuthSession(): AuthSession {
+        return AuthSession(
+            user = User(
+                id = user.id,
+                email = user.email,
+                role = UserRole.fromApi(user.role)
+            ),
+            accessToken = accessToken,
+            refreshToken = refreshToken
+        )
     }
 }
