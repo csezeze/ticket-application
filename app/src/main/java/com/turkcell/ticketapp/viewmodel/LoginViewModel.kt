@@ -3,6 +3,7 @@ package com.turkcell.ticketapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turkcell.core.domain.AuthRepository
+import com.turkcell.core.domain.UserRole
 import com.turkcell.ticketapp.util.toUserMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ data class LoginUiState(
     val password: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
+    val userRole: UserRole? = null
 ) {
     val canSubmit: Boolean
         get() = email.isNotBlank() && password.length >= 8 && !isLoading
@@ -48,8 +50,14 @@ class LoginViewModel(
 
         viewModelScope.launch {
             authRepository.login(current.email, current.password)
-                .onSuccess {
-                    _state.update { it.copy(isLoading = false, isLoggedIn = true) }
+                .onSuccess { session ->
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoggedIn = true,
+                            userRole = session.user.role
+                        )
+                    }
                 }
                 .onFailure { error ->
                     _state.update {

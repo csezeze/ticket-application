@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.turkcell.core.domain.UserRole
 import com.turkcell.ticketapp.R
 import com.turkcell.ticketapp.viewmodel.LoginViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -34,14 +35,15 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (UserRole) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.isLoggedIn) {
-        if(state.isLoggedIn)
-            onLoginSuccess()
+    LaunchedEffect(state.isLoggedIn, state.userRole) {
+        val userRole = state.userRole
+        if(state.isLoggedIn && userRole != null)
+            onLoginSuccess(userRole)
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {

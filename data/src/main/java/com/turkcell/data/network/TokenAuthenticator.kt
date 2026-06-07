@@ -37,7 +37,13 @@ class TokenAuthenticator(
                 return@synchronized null
             }
 
-            tokenStore.saveBlocking(newPair.accessToken, newPair.refreshToken)
+            tokenStore.saveBlocking(
+                access = newPair.accessToken,
+                refresh = newPair.refreshToken,
+                userId = newPair.user.id,
+                userEmail = newPair.user.email,
+                userRole = newPair.user.role
+            )
             response.request.signWith(newPair.accessToken)
         }
     }
